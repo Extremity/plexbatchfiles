@@ -32,3 +32,6 @@ Now that that's done, using it is easy.
 You're done! Once you've made sure everything's been moved, you can delete the title card folder for this show (all Season folders within will be empty). If there's and demand for it, I'll add an option to copy the files rather than move them.
 
 *Why did I need this, you ask? Many of my TV show episodes (and I have a lot of them) contain unique information per episode, such as the episode title. I can't simply batch-rename the files with sequential episode numbers, and Plex requires that local media files use the exact file name of the episode. So, if I have file names like "TV Show - S04E15 - The Dog Chases the Cat [1080p WEBRip x265][Derp].mkv" and every single other episode also has a unique name, there is no easy way for me to match each title card to each episode without doing so one by one. Now, instead, I can just double click on this.*
+
+### Current issues:
+- Need better handling of joined episode files (ie, S02E15-E15)
