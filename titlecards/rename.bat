@@ -18,7 +18,7 @@ echo thumbnails in a "Season 4" folder will attempt to connect with episode file
 echo "Season 4" folder.
 echo\
 @pause
-:choice
+:begin
 cls
 color 0b
 echo\
@@ -32,15 +32,17 @@ echo\
 echo 9)  Exit
 echo\
 set ext=
-set /p a=
-if not defined a goto choice
-if %a%==1 (set ext=png&goto set)
-if %a%==2 (set ext=jpg&goto set)
-if %a%==3 (set ext=jpeg&goto set)
-if %a%==4 (set ext=tbn&goto set)
-if %a%==9 exit
-goto choice
+
+choice /n /c 12349 /m "Input:"
+IF %ERRORLEVEL% == 1 (set ext=png&goto set)
+IF %ERRORLEVEL% == 2 (set ext=jpg&goto set)
+IF %ERRORLEVEL% == 3 (set ext=jpeg&goto set)
+IF %ERRORLEVEL% == 4 (set ext=tbn&goto set)
+IF %ERRORLEVEL% == 5 exit
+goto begin
+
 :set
+
 cls
 :set2
 echo\
@@ -49,18 +51,39 @@ echo Enter the path to the TV show's base directory; ie: D:\Plex Content\Televis
 echo\
 echo Do note use quotes.
 echo\
-set path=
-set /p path=Directory path: 
-if not defined path goto set
-set "path=%path:/=\%"
-if not exist "%path%" cls&echo That path does not exist.&goto set2
+set pth=
+set /p pth=Directory path: 
+if not defined pth goto set
+set "pth=%pth:/=\%"
+if not exist "%pth%" cls&echo That path does not exist.&goto set2
+if %pth:~-1% == \ (set "pth=%pth:~0,-1%")
 
 cls
-
-if %path:~-1% == \ (set "path=%path:~0,-1%")
-
+:set3
 echo\
-echo Migrating %ext% thumbnails to series root "%path%"...
+echo Thumbnail type: .%ext%
+echo Episode path: "%pth%"
+echo\
+echo Would you like to move these thumbnails, or copy them^?
+echo\
+echo 1) Move
+echo 2) Copy
+echo\
+echo 8) Start Over
+echo 9) Exit
+echo\
+set m=
+choice /n /c 1289 /m "Enter:"
+IF %ERRORLEVEL% == 1 (set m=1&set verb=Moving&goto execute)
+IF %ERRORLEVEL% == 2 (set m=2&set verb=Copying&goto execute)
+IF %ERRORLEVEL% == 3 goto begin
+IF %ERRORLEVEL% == 4 exit
+goto set3
+
+:execute
+cls
+echo\
+echo Migrating %ext% thumbnails to series root "%pth%"...
 echo\
 set foundthumb=
 set /a founddest=0
@@ -73,10 +96,10 @@ for /r %%f in (*%ext%) do (
 	for %%P in ("!tempf!") do (
 	ENDLOCAL
 		echo Attempting to locate corresponding episode file...
-		for %%g in ("%path%\%%~nxP\*%%~nf*.mkv","%path%\%%~nxP\*%%~nf*.avi","%path%\%%~nxP\*%%~nf*.mp4","%path%\%%~nxP\*%%~nf*.mpg","%path%\%%~nxP\*%%~nf*.mpeg") do (
+		for %%g in ("%pth%\%%~nxP\*%%~nf*.mkv","%pth%\%%~nxP\*%%~nf*.avi","%pth%\%%~nxP\*%%~nf*.mp4","%pth%\%%~nxP\*%%~nf*.mpg","%pth%\%%~nxP\*%%~nf*.mpeg") do (
 			echo Located: %%~nxg
-			echo Moving thumbnail...   Renaming thumbnail...
-			move "%%~ff" "%%~dpng.%ext%"
+			echo %verb% thumbnail...   Renaming thumbnail...
+			if %m% == 1 (move "%%~ff" "%%~dpng.%ext%") else (copy "%%~ff" "%%~dpng.%ext%")
 			echo Migration successful. Continuing...&echo ------------------------------------------ 
 			set /a founddest=founddest+1
 			set ef=1
@@ -85,9 +108,9 @@ for /r %%f in (*%ext%) do (
 		set foundthumb=1
 	)
 )
-if not defined foundthumb echo\&echo No thumbnails with the extension %ext% were found.&echo:&pause>nul|set/p =Press any key to start over . . .&goto choice
-if %founddest% == 0 echo\&echo Your thumbnails were parsed, but no valid episode files were found at the provided show path.&echo\&pause>nul|set/p =Press any key to start over . . .&goto choice
+if not defined foundthumb echo\&echo No thumbnails with the extension %ext% were found.&echo:&pause>nul|set/p =Press any key to start over . . .&goto begin
+if %founddest% == 0 echo\&echo Your thumbnails were parsed, but no valid episode files were found at the provided show path.&echo\&pause>nul|set/p =Press any key to start over . . .&goto begin
 
-echo\&echo Work complete^! %founddest% thumbnails have been attached to their respective episodes.
+echo\&echo %verb% complete^! %founddest% thumbnails have been attached to their respective episodes.
 echo\
  pause>nul|set/p =Press any key to exit . . .
